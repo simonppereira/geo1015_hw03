@@ -2,8 +2,8 @@
   GEO1015.2020
   hw03 
   --
-  [YOUR NAME] 
-  [YOUR STUDENT NUMBER] 
+  Pratyush Kumar
+  5359252
   [YOUR NAME] 
   [YOUR STUDENT NUMBER] 
 */
@@ -56,7 +56,11 @@ class PlaneDetector {
   const std::vector<Point>& get_input_points() {
     return _input_points;
   };
-
+  
+  
+  std::vector<int> seg_id_used = { 1 }; //vector storing used segment id's, starts at 1
+  int get_seg_id(); // function/ method used to get a new ID and append the new value to the end of seg_id_used vector
+  
   private:
 
   //-- This variable holds the entire input point cloud after calling read_ply()
