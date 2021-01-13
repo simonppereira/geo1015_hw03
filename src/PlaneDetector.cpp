@@ -89,7 +89,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
 
             double dist = dot(point_vec, normalized_normal);
             
-            if (dist > epsilon)
+            if (dist < epsilon)
             {
                 //increment score by 1
              /*   index_list.push_back(i);
