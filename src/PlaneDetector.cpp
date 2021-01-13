@@ -40,26 +40,114 @@ Output:
     Updated .segment_id's on the inliers in the newly detected plane. The inliers contain both the
     consensus set and minimal set.
 */
-void PlaneDetector::detect_plane(double epsilon, int min_score, int k) {
 
+void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
+{
   //-- TIP
-  //-- access the input points from the _input_points:
+  //-- access the input points from the _input_points: 
+  // for loop here
+    //take random indices till k is reached:
+    int len_vec = _input_points.size();
 
-  //   double x_of_point_i = _input_points[i].x;
-  //   int segment_id_of_point_i = _input_points[i].segment_id;
+    std::uniform_int_distribution<int> distrib(0, len_vec - 1);
+    int rand1 = distrib(_rand);
+    int rand2 = distrib(_rand);
+    int rand3 = distrib(_rand);
 
-  //-- set the segment_id of point i:
+    //std::cout << rand1 << '\t'<<rand2 <<'\t' << rand3 << '\n' ;
+    
+    //take 3 random indices
+    
+    PlaneDetector::Point p1 = _input_points[rand1];
+    PlaneDetector::Point p2 = _input_points[rand2];
+    PlaneDetector::Point p3 = _input_points[rand3];
+    
+    //std::cout << p1.x << '\t' << p2.x << '\t' << p3.x << '\n';
 
-  //   _input_points[i].segment_id = 1;
+    //make a plane
+    // find params for the plane
+    // plane = Ax + By + Cz + D
+    // plane = normal vector and a point of center
+    // other two points help make the normal using cross product
+    //consider p1 to be the point wrt the vectors are formed
+    
+    double3  v1  = { p2.x - p1.x , p2.y - p1.y , p2.z - p1.z };
+    double3  v2  = { p3.x - p1.x , p3.y - p1.y , p3.z - p1.z };
+    double3 normal = cross(v2, v1);
+    double3 normalized_normal = normalize(normal);
+    //std::cout << normalized_normal.x << '\t' << normalized_normal.y<<'\t' << normalized_normal.z << '\n';
+    
+    std::vector<int> index_list = {};
+
+    for (int i=0 ; i< len_vec ; i++)
+    {
+        if (i != rand1 || i != rand2 || i != rand3)
+        {
+            // for all points except the 3 selected ones
+            // calculate the distance and check with epsilon
+            double3 point_vec = { _input_points[i].x - p1.x ,_input_points[i].y - p1.y,_input_points[i].z - p1.z };
+
+            double dist = dot(point_vec, normalized_normal);
+            
+            if (dist > epsilon)
+            {
+                //increment score by 1
+             /*   index_list.push_back(i);
+                if (index_list.size() > 50)
+                {
+                    std::cout << "we reached a plane which works" << '\n';
+                    break;
+                }*/
+            }
+        }
+    }
+    //
+    //if score was 50 or more then good
+
+    //// ############# 
+    //while score > min_score do: keep getting 3 new points, calculate plane
+    // find score for that plane
+    // if min score achieved then all those points are of a plane, get out of loop
 
 
-  //-- TIP
-  //-- Generating random numbers between 0 and 100
 
-  // std::uniform_int_distribution<int> distrib(0, 100);
-  // int my_random_number = distrib(_rand);
 
-  //-- see https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution for more info
+    /*
+    for (auto i = 0; i < 10;i++) // _input_points.size())
+    {
+        std::cout << i;
+    }
+
+    std::cout << _input_points.size();
+    double x_of_point_i = _input_points[0].x;
+    double y_of_point_i = _input_points[0].y;
+    double z_of_point_i = _input_points[0].z;
+    _input_points[0].segment_id = 1;
+    int segment_id_of_point_i = _input_points[0].segment_id;
+
+    std::cout << "id" << "   " << segment_id_of_point_i << "   " << x_of_point_i << "    " << y_of_point_i << "    " << z_of_point_i << "\n";
+    */
+    //std::cout << _input_points.size();
+    /*
+    for (auto i = 0; i < _input_points.size())
+    {
+        double x_of_point_i = _input_points[i].x;
+        int segment_id_of_point_i = _input_points[i].segment_id;
+        //-- set the segment_id of point i:
+
+        _input_points[i].segment_id = 1;
+
+
+        //-- TIP
+        //-- Generating random numbers between 0 and 100
+
+        std::uniform_int_distribution<int> distrib(0, 100);
+        int my_random_number = distrib(_rand);
+        //-- see https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution for more info
+        _input_points[i].segment_id = my_random_number;
+    }
+    */
+
 
 }
 
