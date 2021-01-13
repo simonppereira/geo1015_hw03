@@ -16,6 +16,8 @@
 #include <iterator>
 #include <algorithm>
 
+#include <random> //uniform_int_distribution
+
 #include "PlaneDetector.h"
 
 /*
@@ -42,10 +44,30 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k) {
 
   //-- TIP
   //-- access the input points from the _input_points:
+    for (int i = 0;i < 1;i++) {
+        double x_of_point_i = _input_points[i].x;
+        double y_of_point_i = _input_points[i].y;
+        double z_of_point_i = _input_points[i].z;
+        _input_points[i].segment_id = 1;
+        int segment_id_of_point_i = _input_points[i].segment_id;
 
-  //   double x_of_point_i = _input_points[i].x;
-  //   int segment_id_of_point_i = _input_points[i].segment_id;
+        std::cout << "id" << "   " << segment_id_of_point_i << "   " << x_of_point_i << "    " << y_of_point_i << "    " << z_of_point_i << "\n";
+    }
 
+    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> distrib(0, 100);
+    int my_random_number = distrib(_rand);
+    std::cout << my_random_number << "\n";
+ 
+  
+    //for (auto it = std::begin(_input_points); it != std::end(_input_points); ++it) {
+     //   std::cout << *it << "\n";
+    
+        
+
+  //int segment_id_of_point_i = _input_points[i].segment_id;
+ 
   //-- set the segment_id of point i:
 
   //   _input_points[i].segment_id = 1;
@@ -60,6 +82,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k) {
   //-- see https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution for more info
 
 }
+
 
 // PLY I/O
 
