@@ -41,6 +41,7 @@ Output:
     consensus set and minimal set.
 */
 
+
 void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
 {
   //-- TIP
@@ -49,6 +50,8 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     //################################//
       // W.O.R.K. F.L.O.W. H.E.R.E. //
     //###############################//
+
+
     //if score was 50 or more then good
 
     //// ############# 
@@ -69,6 +72,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         int rand1 = distrib(_rand);
         int rand2 = distrib(_rand);
         int rand3 = distrib(_rand);
+        // TODO add condition if the random points happen to be the same
 
         //std::cout << rand1 << '\t'<<rand2 <<'\t' << rand3 << '\n' ;
     
@@ -94,10 +98,10 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     
         std::vector<int> index_list = {};
         int scorer = 0;
-
-        for (int i=0 ; i< len_vec ; i++)
+        int flag = 0;
+        for (int i=0 ; i< len_vec ; i++) //for every point in the dataset  except the 3 which define the plane
         {
-            if (i != rand1 || i != rand2 || i != rand3)
+            if (i != rand1 || i != rand2 || i != rand3 || _input_points[i].segment_id == 0) //added last condition in case the point is already CLASSIFIED
             {
                 // for all points except the 3 selected ones
                 // calculate the distance and check with epsilon
@@ -112,19 +116,27 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
                     index_list.push_back(i);
                     if (index_list.size() > min_score)
                     {                       
-                        break;
+                        //best plane found with min of 50 points
+                        // set flag  =1
+                        flag = 1;
+                        //break;
                     }
                 }
             }
         } //end child for
+
         //insert conditional schecking score
         if (scorer > score_best) //score obtained in this iter is better than those before
         {
-            score_best = scorer ;
-            index_list_best = index_list ;
-            index_list_best.push_back(rand1);
-            index_list_best.push_back(rand2);
-            index_list_best.push_back(rand3);
+            score_best = scorer ; //update best score
+            if (flag==1) // if there were at least 50 points found in the plane
+            {
+                index_list_best = index_list; //update best list of indices
+                index_list_best.push_back(rand1);
+                index_list_best.push_back(rand2);
+                index_list_best.push_back(rand3);
+            }
+            
         }     
 
     } //end parent for 
@@ -132,7 +144,11 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     //update values for the best plane found
     std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
     // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
-
+    for (int i =0 ; i< index_list_best.size() ; i++)
+    {
+        //read indices and update the segment ID
+        _input_points[i].segment_id = 10;// PlaneDetector::get_seg_id();
+    }
     //implement the segmentation value updation for vectors here (for the best indices)
 
 
@@ -150,6 +166,27 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     */
 
 }
+/*
+int PlaneDetector::get_seg_id()
+{
+    // get a segment id that hasnt been used yet
+    //if first usage, only 1 is in the id
+    if (seg_id_used.size() == 1)
+    {
+        return 1;
+    }
+    else
+    {
+        int seg_counter = seg_id_used.end() ; //get last used id
+        seg_counter++; //increment the id value by 1
+        seg_id_used.push_back(seg_counter); // push this to the end of the vector of ID's
+        return seg_counter; //return the new id
+    }
+}
+
+*/
+
+
 
 // PLY I/O
 
