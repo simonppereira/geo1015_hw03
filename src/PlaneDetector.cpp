@@ -49,6 +49,12 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     //################################//
       // W.O.R.K. F.L.O.W. H.E.R.E. //
     //###############################//
+    //if score was 50 or more then good
+
+    //// ############# 
+    // while score > min_score do: keep getting 3 new points, calculate plane
+    // find score for that plane
+    // if min score achieved then all those points are of a plane, get out of loop
 
     // for loop here
     int score_best = 0;
