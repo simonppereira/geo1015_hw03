@@ -2,8 +2,8 @@
   GEO1015.2020
   hw03 
   --
-  [YOUR NAME] 
-  [YOUR STUDENT NUMBER] 
+  Pratyush Kumar
+  5359252
   [YOUR NAME] 
   [YOUR STUDENT NUMBER] 
 */
@@ -17,6 +17,8 @@
 #include <algorithm>
 
 #include "PlaneDetector.h"
+
+using double3 = linalg::aliases::double3;
 
 /*
 !!! TO BE COMPLETED !!!
@@ -72,9 +74,18 @@ Input:
    filepath:  path of the .ply file to write the points with segment id
 */
 void PlaneDetector::write_ply(std::string filepath) {
-
+    std::cout<<"Writing file now to " << filepath << std::endl ;
+    std::ofstream ofs( filepath.c_str() , std::ofstream::out);
+    if (ofs.is_open())
+    {
+        ofs << "lorem ipsum";
+        ofs.close();
+    }
+    else
+    {
+        std::cout << "Unable to write sed file noises";
+    }
 }
-
 /*
 !!! DO NOT MODIFY read_ply() !!!
 
