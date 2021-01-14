@@ -77,5 +77,6 @@ class PlaneDetector {
 
   //-- random number generator to generate your random numbers (important for RANSAC!)
   std::mt19937 _rand{ std::mt19937{std::random_device{}()} };
+  int current_plane_no = 0;
 
 };
