@@ -94,7 +94,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         // TODO add condition if the random points happen to be the same
         
         
-        int y = x++;
+        int y= x++;
    
         while (rand1 == rand2 || rand1 == rand3 || rand2 == rand3) {
      
@@ -228,9 +228,9 @@ Function that writes the entire point cloud including the segment_id of each poi
 Input:
    filepath:  path of the .ply file to write the points with segment id
 */
-void PlaneDetector::write_ply(std::string filepath = "C:\Users\simon\geo1015.2020 - master - hw - 03\geo1015.2020 - master - hw - 03\hw\03") {
-    std::cout<<"Writing file now to " << filepath << std::endl ;
-    std::ofstream ofs( filepath.c_str() , std::ofstream::out);
+void PlaneDetector::write_ply(std::string filepath) {
+    std::cout << "Writing file now to " << filepath << std::endl;
+    std::ofstream ofs(filepath.c_str(), std::ofstream::out);
     if (ofs.is_open())
     {
         ofs << "lorem ipsum";
