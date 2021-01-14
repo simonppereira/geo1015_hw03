@@ -2,8 +2,8 @@
   GEO1015.2020
   hw03 
   --
-  Pratyush Kumar
-  5359252
+  [YOUR NAME] 
+  [YOUR STUDENT NUMBER] 
   [YOUR NAME] 
   [YOUR STUDENT NUMBER] 
 */
@@ -19,7 +19,7 @@
 #include "PlaneDetector.h"
 
 using double3 = linalg::aliases::double3;
-
+int var_id = 1;
 /*
 !!! TO BE COMPLETED !!!
 
@@ -40,7 +40,6 @@ Output:
     Updated .segment_id's on the inliers in the newly detected plane. The inliers contain both the
     consensus set and minimal set.
 */
-
 
 void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
 {
@@ -68,10 +67,18 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         //take random indices till k is reached:
         int len_vec = _input_points.size();
 
-        std::uniform_int_distribution<int> distrib(0, len_vec - 1);
-        int rand1 = distrib(_rand);
-        int rand2 = distrib(_rand);
-        int rand3 = distrib(_rand);
+        
+        int rand1 = 0;
+        int rand2 = 0;
+        int rand3 = 0;
+        //get unique rand
+        while (rand1 == rand2 & rand1 == rand3 & rand2 == rand3)
+        {
+            std::uniform_int_distribution<int> distrib(0, len_vec - 1);
+            rand1 = distrib(_rand);
+            rand2 = distrib(_rand);
+            rand3 = distrib(_rand);
+        };
         // TODO add condition if the random points happen to be the same
 
         //std::cout << rand1 << '\t'<<rand2 <<'\t' << rand3 << '\n' ;
@@ -95,7 +102,8 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         double3 normal = cross(v2, v1);
         double3 normalized_normal = normalize(normal);
         //std::cout << normalized_normal.x << '\t' << normalized_normal.y<<'\t' << normalized_normal.z << '\n';
-    
+        //std::cout << "normal    " << '\t' << normal.x << '\t' << normal.y << '\t' << normal.z << '\n';
+        //std::cout << "normalized" << '\t' << normalized_normal.x << '\t' << normalized_normal.y << '\t' << normalized_normal.z << '\n';
         std::vector<int> index_list = {};
         int scorer = 0;
         int flag = 0;
@@ -105,14 +113,15 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
             {
                 // for all points except the 3 selected ones
                 // calculate the distance and check with epsilon
-                double3 point_vec = { _input_points[i].x - p1.x ,_input_points[i].y - p1.y,_input_points[i].z - p1.z };
+                double3 point_vec = { _input_points[i].x - p1.x , _input_points[i].y - p1.y, _input_points[i].z - p1.z };
 
                 double dist = abs(dot(point_vec, normalized_normal)) ;
             
                 if (dist < epsilon)
-                {
+                {   
+                //std::cout << dist << '\n';
                     // increment score by 1
-                    scorer++;
+                    scorer++;//one more point added to the plane
                     index_list.push_back(i);
                     if (index_list.size() > min_score)
                     {                       
@@ -125,109 +134,42 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
                 }
             }
         } //end child for
-        
+        //std::cout << scorer << '\t' << score_best << '\n';
         //insert conditional checking score
         if (scorer > score_best) //score obtained in this iter is better than those before
         {
             score_best = scorer ; //update best score
-            if (flag==1) // if there were at least 50 points found in the plane
+            if (flag == 1) // if there were at least 50 points found in the plane
             {
                 index_list_best = index_list; //update best list of indices
                 index_list_best.push_back(rand1);
                 index_list_best.push_back(rand2);
                 index_list_best.push_back(rand3);
-                
+
             }
+            else std::cout << "alas we couldnt find a good plane here \n";
             
         }     
 
     } //end parent for 
-    var_id++;
     //update values for the best plane found
     std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
     // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
+    
     int new_id = PlaneDetector::get_seg_id();
+    std::cout <<"planes are to be updated with value : " <<new_id << '\n';
     for (int i =0 ; i< index_list_best.size() ; i++)
     {
         //read indices and update the segment ID
         //auto pathy = get_seg_id_used();
         //for (auto i : pathy)
-            //std::cout << i << ' ';
-        _input_points[i].segment_id = new_id;
+        //std::cout << i << ' ';
+        _input_points[index_list_best[i]].segment_id = new_id;
     }
     //implement the segmentation value updation for vectors here (for the best indices)
 
-
-    /*
-    double x_of_point_i = _input_points[i].x;
-    int segment_id_of_point_i = _input_points[i].segment_id;
-    //-- set the segment_id of point i:
-    _input_points[i].segment_id = 1;
-    //-- TIP
-    //-- Generating random numbers between 0 and 100
-    std::uniform_int_distribution<int> distrib(0, 100);
-    int my_random_number = distrib(_rand);
-    //-- see https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution for more info
-    _input_points[i].segment_id = my_random_number;
-    */
-
 }
 
-
-/*
-int PlaneDetector::get_seg_id()
-{
-    // get a segment id that hasnt been used yet
-    //if first usage, only 1 is in the id
-    /*
-    std::vector<int>* seg_id = get_seg_id_used(); //get addressof the vector
-    if (*seg_id.size() == 1)
-    {
-        //std::cout << "first run in get id" << '\n';
-
-        return *seg_id.front();
-    }
-    else
-    {
-        std::cout << "else run in get id" << '\n';
-        int seg_counter = *seg_id.back() ; //get last used id
-        ++seg_counter; //increment the id value by 1
-        *seg_id.push_back(seg_counter); // push this to the end of the vector of ID's
-
-        //int seg_counter = get_seg_id_used();
-
-
-        return *seg_id.back(); //return the new id
-    }
-    
-    
-    //first read file
-    int data;   
-    std::ifstream fh("temp_txt.pk");
-    if (fh.is_open())
-    {
-        fh >> data;
-        fh.close();
-        
-    }
-
-    else
-    {
-        return 1;
-    }
-        
-    //then write file
-    std::ofstream ofs("temp_txt.pk");
-        
-    if (ofs.is_open())
-    {
-        ofs << ++data;
-        ofs.close();
-    }
-    return int(data);
-    
-}
-*/
 
 
 // PLY I/O
@@ -253,6 +195,7 @@ void PlaneDetector::write_ply(std::string filepath) {
         std::cout << "Unable to write sed file noises";
     }
 }
+
 /*
 !!! DO NOT MODIFY read_ply() !!!
 
