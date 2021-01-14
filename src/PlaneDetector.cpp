@@ -41,7 +41,7 @@ Output:
     consensus set and minimal set.
 */
 
-
+int x = 0;
 void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
 {
   //-- TIP
@@ -81,7 +81,17 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         PlaneDetector::Point p1 = _input_points[rand1];
         PlaneDetector::Point p2 = _input_points[rand2];
         PlaneDetector::Point p3 = _input_points[rand3];
-    
+        
+        int y = x++;
+
+        while (rand1 == rand2 || rand1 == rand3 || rand2 == rand3) {
+
+            rand1 = distrib(_rand);
+            rand2 = distrib(_rand);
+            rand3 = distrib(_rand);
+            
+        }
+        //std::cout << y << "\t" << rand1 << '\t' << rand2 << '\t' << rand3 << '\n';
         //std::cout << p1.x << '\t' << p2.x << '\t' << p3.x << '\n';
 
         //make a plane
@@ -142,7 +152,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         }     
 
     } //end parent for 
-    var_id++;
+    
     //update values for the best plane found
     std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
     // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
