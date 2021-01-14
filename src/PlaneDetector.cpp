@@ -120,12 +120,13 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
                         // set flag  =1
                         flag = 1;
                         //break;
+                     
                     }
                 }
             }
         } //end child for
-
-        //insert conditional schecking score
+        
+        //insert conditional checking score
         if (scorer > score_best) //score obtained in this iter is better than those before
         {
             score_best = scorer ; //update best score
@@ -135,19 +136,24 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
                 index_list_best.push_back(rand1);
                 index_list_best.push_back(rand2);
                 index_list_best.push_back(rand3);
+                
             }
             
         }     
 
     } //end parent for 
-    
+    var_id++;
     //update values for the best plane found
     std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
     // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
+    int new_id = PlaneDetector::get_seg_id();
     for (int i =0 ; i< index_list_best.size() ; i++)
     {
         //read indices and update the segment ID
-        _input_points[i].segment_id = 10;// PlaneDetector::get_seg_id();
+        //auto pathy = get_seg_id_used();
+        //for (auto i : pathy)
+            //std::cout << i << ' ';
+        _input_points[i].segment_id = new_id;
     }
     //implement the segmentation value updation for vectors here (for the best indices)
 
@@ -166,26 +172,62 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     */
 
 }
+
+
 /*
 int PlaneDetector::get_seg_id()
 {
     // get a segment id that hasnt been used yet
     //if first usage, only 1 is in the id
-    if (seg_id_used.size() == 1)
+    /*
+    std::vector<int>* seg_id = get_seg_id_used(); //get addressof the vector
+    if (*seg_id.size() == 1)
     {
-        return 1;
+        //std::cout << "first run in get id" << '\n';
+
+        return *seg_id.front();
     }
     else
     {
-        int seg_counter = seg_id_used.end() ; //get last used id
-        seg_counter++; //increment the id value by 1
-        seg_id_used.push_back(seg_counter); // push this to the end of the vector of ID's
-        return seg_counter; //return the new id
+        std::cout << "else run in get id" << '\n';
+        int seg_counter = *seg_id.back() ; //get last used id
+        ++seg_counter; //increment the id value by 1
+        *seg_id.push_back(seg_counter); // push this to the end of the vector of ID's
+
+        //int seg_counter = get_seg_id_used();
+
+
+        return *seg_id.back(); //return the new id
     }
+    
+    
+    //first read file
+    int data;   
+    std::ifstream fh("temp_txt.pk");
+    if (fh.is_open())
+    {
+        fh >> data;
+        fh.close();
+        
+    }
+
+    else
+    {
+        return 1;
+    }
+        
+    //then write file
+    std::ofstream ofs("temp_txt.pk");
+        
+    if (ofs.is_open())
+    {
+        ofs << ++data;
+        ofs.close();
+    }
+    return int(data);
+    
 }
-
 */
-
 
 
 // PLY I/O
