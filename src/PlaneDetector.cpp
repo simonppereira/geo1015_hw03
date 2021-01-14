@@ -43,28 +43,13 @@ Output:
     consensus set and minimal set.
 */
 
+int x = 0;
 
 void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
 {
   //-- TIP
-
+    
   //-- access the input points from the _input_points:
-    for (int i = 0;i < 1;i++) {
-        double x_of_point_i = _input_points[i].x;
-        double y_of_point_i = _input_points[i].y;
-        double z_of_point_i = _input_points[i].z;
-        _input_points[i].segment_id = 1;
-        int segment_id_of_point_i = _input_points[i].segment_id;
-
-        std::cout << "id" << "   " << segment_id_of_point_i << "   " << x_of_point_i << "    " << y_of_point_i << "    " << z_of_point_i << "\n";
-    }
-
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> distrib(0, 100);
-    int my_random_number = distrib(_rand);
-    std::cout << my_random_number << "\n";
- 
   
     //for (auto it = std::begin(_input_points); it != std::end(_input_points); ++it) {
      //   std::cout << *it << "\n";
@@ -95,20 +80,31 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     // for loop here
     int score_best = 0;
     std::vector<int> index_list_best = {};
-
+    
     for (int iter_ = 0 ; iter_<k; iter_++) //loop through for k times
     {
         //take random indices till k is reached:
         int len_vec = _input_points.size();
+        //std::cout << len_vec << "\n";
 
         std::uniform_int_distribution<int> distrib(0, len_vec - 1);
         int rand1 = distrib(_rand);
         int rand2 = distrib(_rand);
         int rand3 = distrib(_rand);
         // TODO add condition if the random points happen to be the same
+        
+        
+        int y = x++;
+   
+        while (rand1 == rand2 || rand1 == rand3 || rand2 == rand3) {
+     
+            rand1 = distrib(_rand);
+            rand2 = distrib(_rand);
+            rand3 = distrib(_rand);
+            //std::cout << "something went wrong";
+        }
+        std::cout << y << "\t" << rand1 << '\t' << rand2 << '\t' << rand3 << '\n';
 
-        //std::cout << rand1 << '\t'<<rand2 <<'\t' << rand3 << '\n' ;
-    
         //take 3 random indices
     
         PlaneDetector::Point p1 = _input_points[rand1];
@@ -141,7 +137,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
                 double3 point_vec = { _input_points[i].x - p1.x ,_input_points[i].y - p1.y,_input_points[i].z - p1.z };
 
                 double dist = abs(dot(point_vec, normalized_normal)) ;
-            
+                //std::cout << "distance  " << dist << "\n";
                 if (dist < epsilon)
                 {
                     // increment score by 1
@@ -175,7 +171,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     } //end parent for 
     
     //update values for the best plane found
-    std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
+    //std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
     // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
     for (int i =0 ; i< index_list_best.size() ; i++)
     {
@@ -232,7 +228,7 @@ Function that writes the entire point cloud including the segment_id of each poi
 Input:
    filepath:  path of the .ply file to write the points with segment id
 */
-void PlaneDetector::write_ply(std::string filepath) {
+void PlaneDetector::write_ply(std::string filepath = "C:\Users\simon\geo1015.2020 - master - hw - 03\geo1015.2020 - master - hw - 03\hw\03") {
     std::cout<<"Writing file now to " << filepath << std::endl ;
     std::ofstream ofs( filepath.c_str() , std::ofstream::out);
     if (ofs.is_open())
