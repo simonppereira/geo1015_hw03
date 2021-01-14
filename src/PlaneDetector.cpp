@@ -233,7 +233,7 @@ void PlaneDetector::write_ply(std::string filepath) {
     std::ofstream ofs(filepath.c_str(), std::ofstream::out);
     if (ofs.is_open())
     {
-        ofs << "lorem ipsum";
+        ofs << "lorem ipsum"; 
         ofs.close();
     }
     else
