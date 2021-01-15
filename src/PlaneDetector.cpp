@@ -61,18 +61,17 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     // for loop here
     int score_best = 0;
     std::vector<int> index_list_best = {};
+    int len_vec = _input_points.size();
 
     for (int iter_ = 0 ; iter_<k; iter_++) //loop through for k times
     {
         //take random indices till k is reached:
-        int len_vec = _input_points.size();
-
-        
+            
         int rand1 = 0;
         int rand2 = 0;
         int rand3 = 0;
         //get unique rand
-        while (rand1 == rand2 & rand1 == rand3 & rand2 == rand3)
+        while (rand1 == rand2 && rand1 == rand3 && rand2 == rand3)
         {
             std::uniform_int_distribution<int> distrib(0, len_vec - 1);
             rand1 = distrib(_rand);
@@ -101,10 +100,13 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         double3  v2  = { p3.x - p1.x , p3.y - p1.y , p3.z - p1.z };
         double3 normal = cross(v2, v1);
         double3 normalized_normal = normalize(normal);
+
+        std::vector<double3> vector_params = { normalized_normal , p1 };
         //std::cout << normalized_normal.x << '\t' << normalized_normal.y<<'\t' << normalized_normal.z << '\n';
         //std::cout << "normal    " << '\t' << normal.x << '\t' << normal.y << '\t' << normal.z << '\n';
         //std::cout << "normalized" << '\t' << normalized_normal.x << '\t' << normalized_normal.y << '\t' << normalized_normal.z << '\n';
         std::vector<int> index_list = {};
+        index_list.clear();
         int scorer = 0;
         int flag = 0;
         for (int i=0 ; i< len_vec ; i++) //for every point in the dataset  except the 3 which define the plane
@@ -123,6 +125,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
                     // increment score by 1
                     scorer++;//one more point added to the plane
                     index_list.push_back(i);
+                    
                     if (index_list.size() > min_score)
                     {                       
                         //best plane found with min of 50 points
@@ -136,21 +139,24 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         } //end child for
         //std::cout << scorer << '\t' << score_best << '\n';
         //insert conditional checking score
-        if (scorer > score_best) //score obtained in this iter is better than those before
+        if (scorer > score_best && scorer > min_score) //score obtained in this iter is better than those before
         {
-            score_best = scorer ; //update best score
-            if (flag == 1) // if there were at least 50 points found in the plane
-            {
-                index_list_best = index_list; //update best list of indices
-                index_list_best.push_back(rand1);
-                index_list_best.push_back(rand2);
-                index_list_best.push_back(rand3);
+            score_best = scorer; //update best score
+            //if (flag == 1) // if there were at least 50 points found in the plane
+            //{
+            index_list_best = index_list; //update best list of indices
+            index_list_best.push_back(rand1);
+            index_list_best.push_back(rand2);
+            index_list_best.push_back(rand3);
+            std::cout << index_list_best.size();
+            //}
+            //else std::cout << "alas we couldnt find a good plane here \n";
 
-            }
-            else std::cout << "alas we couldnt find a good plane here \n";
-            
-        }     
-
+        }
+        else if (scorer > score_best && scorer < min_score)
+        {
+            std::cout << "score more than best score but not more than min score" << '\n';
+        }
     } //end parent for 
     //update values for the best plane found
     std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
@@ -165,6 +171,9 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         //for (auto i : pathy)
         //std::cout << i << ' ';
         _input_points[index_list_best[i]].segment_id = new_id;
+
+        //std::cout << _input_points[ index_list_best[i] ].norm_point_storer << '\n';
+
     }
     //implement the segmentation value updation for vectors here (for the best indices)
 
