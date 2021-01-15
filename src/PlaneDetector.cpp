@@ -148,7 +148,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
             index_list_best.push_back(rand1);
             index_list_best.push_back(rand2);
             index_list_best.push_back(rand3);
-            std::cout << index_list_best.size();
+            /*std::cout << index_list_best.size() <<" this is the size of vector of indices \n";*/
             //}
             //else std::cout << "alas we couldnt find a good plane here \n";
 
@@ -161,22 +161,32 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
     //update values for the best plane found
     std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
     // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
-    
-    int new_id = PlaneDetector::get_seg_id();
-    std::cout <<"planes are to be updated with value : " <<new_id << '\n';
-    for (int i =0 ; i< index_list_best.size() ; i++)
+    std::cout << index_list_best.size() << " this is the size of vector we are now gonna write \n";
+    if (index_list_best.size() > min_score)
     {
-        //read indices and update the segment ID
-        //auto pathy = get_seg_id_used();
-        //for (auto i : pathy)
-        //std::cout << i << ' ';
-        _input_points[index_list_best[i]].segment_id = new_id;
+        std::cout << "list of index is smaller than min score \n";
 
-        //std::cout << _input_points[ index_list_best[i] ].norm_point_storer << '\n';
+        int new_id = PlaneDetector::get_seg_id();
+        std::cout << "planes are to be updated with value : " << new_id << '\n';
+        for (int i = 0; i < index_list_best.size(); i++)
+        {
+            //read indices and update the segment ID
+            //auto pathy = get_seg_id_used();
+            //for (auto i : pathy)
+            //std::cout << i << ' ';
+            if (_input_points[index_list_best[i]].segment_id == 0)
+            {
+                _input_points[index_list_best[i]].segment_id = new_id;
+            }
+
+
+            //std::cout << _input_points[ index_list_best[i] ].norm_point_storer << '\n';
+
+        }
+        //implement the segmentation value updation for vectors here (for the best indices)
 
     }
-    //implement the segmentation value updation for vectors here (for the best indices)
-
+    
 }
 
 
