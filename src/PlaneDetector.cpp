@@ -18,6 +18,8 @@
 
 #include "PlaneDetector.h"
 
+using double3 = linalg::aliases::double3;
+int var_id = 1;
 /*
 !!! TO BE COMPLETED !!!
 
@@ -38,28 +40,206 @@ Output:
     Updated .segment_id's on the inliers in the newly detected plane. The inliers contain both the
     consensus set and minimal set.
 */
-void PlaneDetector::detect_plane(double epsilon, int min_score, int k) {
 
+void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
+{
   //-- TIP
-  //-- access the input points from the _input_points:
+  //-- access the input points from the _input_points: 
 
-  //   double x_of_point_i = _input_points[i].x;
-  //   int segment_id_of_point_i = _input_points[i].segment_id;
-
-  //-- set the segment_id of point i:
-
-  //   _input_points[i].segment_id = 1;
+    //################################//
+      // W.O.R.K. F.L.O.W. H.E.R.E. //
+    //###############################//
 
 
-  //-- TIP
-  //-- Generating random numbers between 0 and 100
+    //if score was 50 or more then good
 
-  // std::uniform_int_distribution<int> distrib(0, 100);
-  // int my_random_number = distrib(_rand);
+    //// ############# 
+    // while score > min_score do: keep getting 3 new points, calculate plane
+    // find score for that plane
+    // if min score achieved then all those points are of a plane, get out of loop
 
-  //-- see https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution for more info
+    // for loop here
+    int score_best = 0;
+    std::vector<int> index_list_best = {};
+    int len_vec = _input_points.size();
+    std::vector<int> my_vec_of_zeros = {};
+    // make a list of indices from input vector which have id =0
+    for (int i=0 ; i< _input_points.size() ; i++)
+    {
+        if (_input_points[i].segment_id == 0)
+        {
+            my_vec_of_zeros.push_back(i);
+        }
+    }
+    std::cout << "we are at end of loop 1 \n";
 
+    for (int iter_ = 0; iter_ < k; iter_++) //loop through for k times
+    {
+        /*
+        //take random indices till k is reached:
+        std::uniform_int_distribution<int> distrib(0, len_vec - 1);
+        int rand1 = distrib(_rand);
+        int rand2 = distrib(_rand);
+        int rand3 = distrib(_rand);
+        */
+
+        //take 3 random points from list of points having segment 0
+        
+        std::uniform_int_distribution<int> distrib(0, my_vec_of_zeros.size() - 1);
+        int rand1 = distrib(_rand);
+        int rand2 = distrib(_rand);
+        int rand3 = distrib(_rand);
+
+
+
+
+        
+        while (rand1 == rand2 && rand1 == rand3 && rand2 == rand3)
+        {
+            //std::uniform_int_distribution<int> distrib(0, my_vec_of_zeros.size() - 1);
+            rand1 = distrib(_rand);
+            rand2 = distrib(_rand);
+            rand3 = distrib(_rand);
+        }
+
+        //take 3 random indices
+
+        PlaneDetector::Point p1 = _input_points[ my_vec_of_zeros[ rand1 ] ];
+        PlaneDetector::Point p2 = _input_points[my_vec_of_zeros[rand2]];
+        PlaneDetector::Point p3 = _input_points[my_vec_of_zeros[rand3]];
+        std::cout << "we are at end of point selection \n";
+
+        /*
+        //std::cout << p1.x << '\t' << p2.x << '\t' << p3.x << '\n';
+        while(p1.segment_id != 0 || p2.segment_id != 0 || p3.segment_id != 0)
+        {
+            //get unique rand
+            while (rand1 == rand2 && rand1 == rand3 && rand2 == rand3)
+            {
+                std::uniform_int_distribution<int> distrib(0, len_vec - 1);
+                rand1 = distrib(_rand);
+                rand2 = distrib(_rand);
+                rand3 = distrib(_rand);
+                p1 = _input_points[rand1];
+                p2 = _input_points[rand2];
+                p3 = _input_points[rand3];
+            }
+        }   
+        // TODO add condition if the random points happen to be the same
+        */
+        //std::cout << rand1 << '\t'<<rand2 <<'\t' << rand3 << '\n' ;
+    
+        
+        //make a plane
+        // find params for the plane
+        // plane = normal vector and a point of center
+        // other two points help make the normal using cross product
+        //consider p1 to be the point wrt the vectors are formed
+    
+        double3  v1  = { p2.x - p1.x , p2.y - p1.y , p2.z - p1.z };
+        double3  v2  = { p3.x - p1.x , p3.y - p1.y , p3.z - p1.z };
+        double3 normal = cross(v2, v1);
+        double3 normalized_normal = normalize(normal);
+
+        std::vector<double3> vector_params = { normalized_normal , p1 };
+        //std::cout << normalized_normal.x << '\t' << normalized_normal.y<<'\t' << normalized_normal.z << '\n';
+        //std::cout << "normal    " << '\t' << normal.x << '\t' << normal.y << '\t' << normal.z << '\n';
+        //std::cout << "normalized" << '\t' << normalized_normal.x << '\t' << normalized_normal.y << '\t' << normalized_normal.z << '\n';
+        std::vector<int> index_list = {};
+        index_list.clear();
+        int scorer = 0;
+        int flag = 0;
+        for (int i=0 ; i< len_vec ; i++) //for every point in the dataset  except the 3 which define the plane
+        {   
+            my_vec_of_zeros.clear();
+            if ( _input_points[i].segment_id == 0 )
+            {
+                
+                my_vec_of_zeros.push_back(i);
+
+            }
+            
+            if (i != rand1 || i != rand2 || i != rand3 || _input_points[i].segment_id == 0) //added last condition in case the point is already CLASSIFIED
+            {   
+                // for all points except the 3 selected ones
+                // calculate the distance and check with epsilon
+                double3 point_vec = { _input_points[i].x - p1.x , _input_points[i].y - p1.y, _input_points[i].z - p1.z };
+
+                double dist = abs(dot(point_vec, normalized_normal)) ;
+            
+                if (dist < epsilon)
+                {   
+                //std::cout << dist << '\n';
+                    // increment score by 1
+                    scorer++;//one more point added to the plane
+                    index_list.push_back(i);
+                    
+                    if (index_list.size() > min_score)
+                    {                       
+                        //best plane found with min of 50 points
+                        // set flag  =1
+                        flag = 1;
+                        //break;
+                     
+                    }
+                }
+            }
+            
+        } //end child for
+        std::cout << "we are at if condition\n";
+        //std::cout << scorer << '\t' << score_best << '\n';
+        //insert conditional checking score
+        if (scorer > score_best && scorer > min_score) //score obtained in this iter is better than those before
+        {
+            score_best = scorer; //update best score
+            //if (flag == 1) // if there were at least 50 points found in the plane
+            //{
+            index_list_best = index_list; //update best list of indices
+            index_list_best.push_back(my_vec_of_zeros[ rand1 ]);
+            index_list_best.push_back(my_vec_of_zeros[ rand2 ]);
+            index_list_best.push_back(my_vec_of_zeros[ rand3 ]);
+            /*std::cout << index_list_best.size() <<" this is the size of vector of indices \n";*/
+            //}
+            //else std::cout << "alas we couldnt find a good plane here \n";
+
+        }
+        else if (scorer > score_best && scorer < min_score)
+        {
+            std::cout << "score more than best score but not more than min score" << '\n';
+        }
+    } //end parent for 
+    //update values for the best plane found
+    std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
+    // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
+    std::cout << index_list_best.size() << " this is the size of vector we are now gonna write \n";
+    if (index_list_best.size() > min_score)
+    {
+        std::cout << "list of index is smaller than min score \n";
+
+        int new_id = PlaneDetector::get_seg_id();
+        std::cout << "planes are to be updated with value : " << new_id << '\n';
+        for (int i = 0; i < index_list_best.size(); i++)
+        {
+            //read indices and update the segment ID
+            //auto pathy = get_seg_id_used();
+            //for (auto i : pathy)
+            //std::cout << i << ' ';
+            if (_input_points[index_list_best[i]].segment_id == 0)
+            {
+                _input_points[index_list_best[i]].segment_id = new_id;
+            }
+
+
+            //std::cout << _input_points[ index_list_best[i] ].norm_point_storer << '\n';
+
+        }
+        //implement the segmentation value updation for vectors here (for the best indices)
+
+    }
+    
 }
+
+
 
 // PLY I/O
 
@@ -72,7 +252,17 @@ Input:
    filepath:  path of the .ply file to write the points with segment id
 */
 void PlaneDetector::write_ply(std::string filepath) {
-
+    std::cout<<"Writing file now to " << filepath << std::endl ;
+    std::ofstream ofs( filepath.c_str() , std::ofstream::out);
+    if (ofs.is_open())
+    {
+        ofs << "lorem ipsum";
+        ofs.close();
+    }
+    else
+    {
+        std::cout << "Unable to write sed file noises";
+    }
 }
 
 /*
