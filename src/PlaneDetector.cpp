@@ -261,9 +261,29 @@ void PlaneDetector::write_ply(std::string filepath) {
     std::cout<<"Writing file now to " << filepath << std::endl ;
     std::ofstream ofs( filepath.c_str() , std::ofstream::out);
     if (ofs.is_open())
-    {
-        ofs << "lorem ipsum";
-        ofs.close();
+    {     
+        char buf[65];
+        ofs << "ply" << "\n";
+        ofs << "format ascii 1.0" << "\n";
+        ofs << "element vertex " << _input_points.size() << "\n";
+        ofs << "property float x" << "\n";
+        ofs << "property float y" << "\n";
+        ofs << "property float z" << "\n";
+        ofs << "property int segment_id" << "\n";
+        ofs << "end_header" << "\n";
+
+        for (int i = 0; i < _input_points.size(); i++) {
+            sprintf(buf, "%f %f %f %d",
+                _input_points[i].x,
+                _input_points[i].y,
+                _input_points[i].z,
+                _input_points[i].segment_id
+            );
+            if (i = _input_points.size())  ofs << buf;
+            else ofs << buf << '\n';
+        }
+
+        ofs.close();       
     }
     else
     {
