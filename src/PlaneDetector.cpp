@@ -19,7 +19,7 @@
 #include "PlaneDetector.h"
 
 using double3 = linalg::aliases::double3;
-
+using int3 = linalg::aliases::int3;
 /*
 !!! TO BE COMPLETED !!!
 
@@ -40,6 +40,32 @@ Output:
     Updated .segment_id's on the inliers in the newly detected plane. The inliers contain both the
     consensus set and minimal set.
 */
+int3 PlaneDetector::randfunc()
+{
+    std::vector<int> zero_vects = PlaneDetector::get_segment_0_points();
+    int len_zerovec = zero_vects.size();
+
+    int rand1_ = 0;
+    int rand2_ = 0;
+    int rand3_ = 0;
+    
+    //get unique rand
+    while (rand1_ == rand2_ && rand1_ == rand3_ && rand2_ == rand3_)
+    {
+        std::uniform_int_distribution<int> distrib(0, len_zerovec - 1);
+        rand1_ = distrib(_rand);
+        rand2_ = distrib(_rand);
+        rand3_ = distrib(_rand);
+    };
+    
+    // rands are now indexes in zero_vect of points in _input with seg id =0
+    int rand1 = zero_vects[rand1_];
+    int rand2 = zero_vects[rand2_];
+    int rand3 = zero_vects[rand3_];
+    
+    int3 pt = { rand1,rand2,rand3 };
+    return pt;
+}
 void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
 {
     //-- TIP
@@ -72,6 +98,8 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
             std::cout << "zero vec is empty\n";
             break;
         }
+
+        /*
         std::uniform_int_distribution<int> distrib(0, len_zerovec - 1);
 
         int rand1_ = distrib(_rand);
@@ -90,13 +118,24 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         int rand2 = zero_vects[rand2_];
         int rand3 = zero_vects[rand3_];
         //std::cout << rand1 << '\t'<<rand2 <<'\t' << rand3 << '\n' ;
-
+        */
+        
         //take 3 random indices
+        int3 rand_pt_indexes = randfunc();
+        int rand1 = rand_pt_indexes.x;
+        int rand2 = rand_pt_indexes.y;
+        int rand3 = rand_pt_indexes.z;
 
         PlaneDetector::Point p1 = _input_points[rand1];
         PlaneDetector::Point p2 = _input_points[rand2];
         PlaneDetector::Point p3 = _input_points[rand3];
 
+        int dist_pt = 50; // 5*epsilon; //(so we thought, its random)
+        // if anyone of them has dist more than dist_pt
+        if ((linalg::distance(p1, p2) > dist_pt) || (linalg::distance(p1, p2) > dist_pt) || (linalg::distance(p1, p2) > dist_pt))
+        {
+            std::cout << "dist_err\n";
+        }
         /*
         while ( (linalg::distance(p1,p2) > 5*epsilon || linalg::distance(p1, p2) < epsilon) || (linalg::distance(p1, p3) > 5 * epsilon || linalg::distance(p1, p3) < epsilon) || (linalg::distance(p3, p2) > 5 * epsilon || linalg::distance(p3, p2) < epsilon))
         {
