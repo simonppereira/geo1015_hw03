@@ -19,7 +19,7 @@
 #include "PlaneDetector.h"
 
 using double3 = linalg::aliases::double3;
-int var_id = 1;
+
 /*
 !!! TO BE COMPLETED !!!
 
@@ -40,54 +40,71 @@ Output:
     Updated .segment_id's on the inliers in the newly detected plane. The inliers contain both the
     consensus set and minimal set.
 */
-
 void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
 {
-  //-- TIP
-  //-- access the input points from the _input_points: 
+    //-- TIP
+    //-- access the input points from the _input_points: 
 
-    //################################//
-      // W.O.R.K. F.L.O.W. H.E.R.E. //
-    //###############################//
+      //################################//
+        // W.O.R.K. F.L.O.W. H.E.R.E. //
+      //###############################//
 
 
-    //if score was 50 or more then good
+      //if score was 50 or more then good
 
-    //// ############# 
-    // while score > min_score do: keep getting 3 new points, calculate plane
-    // find score for that plane
-    // if min score achieved then all those points are of a plane, get out of loop
+      //// ############# 
+      // while score > min_score do: keep getting 3 new points, calculate plane
+      // find score for that plane
+      // if min score achieved then all those points are of a plane, get out of loop
 
-    // for loop here
+      // for loop here
     int score_best = 0;
     std::vector<int> index_list_best = {};
     int len_vec = _input_points.size();
-
-    for (int iter_ = 0 ; iter_<k; iter_++) //loop through for k times
+    
+    for (int iter_ = 0; iter_ < k; iter_++) //loop through for k times
     {
-        //take random indices till k is reached:
-            
-        int rand1 = 0;
-        int rand2 = 0;
-        int rand3 = 0;
-        //get unique rand
-        while (rand1 == rand2 && rand1 == rand3 && rand2 == rand3)
+        std::vector<int> zero_vects = get_segment_0_points();
+        int len_zerovec = zero_vects.size();
+        //take random indices from 0 segment vector
+        if (len_zerovec < min_score)
         {
-            std::uniform_int_distribution<int> distrib(0, len_vec - 1);
-            rand1 = distrib(_rand);
-            rand2 = distrib(_rand);
-            rand3 = distrib(_rand);
-        };
-        // TODO add condition if the random points happen to be the same
+            std::cout << "zero vec is empty\n";
+            break;
+        }
+        std::uniform_int_distribution<int> distrib(0, len_zerovec - 1);
 
+        int rand1_ = distrib(_rand);
+        int rand2_ = distrib(_rand);
+        int rand3_ = distrib(_rand);
+        //get unique rand
+        while (rand1_ == rand2_ && rand1_ == rand3_ && rand2_ == rand3_)
+        {
+            
+            rand1_ = distrib(_rand);
+            rand2_ = distrib(_rand);
+            rand3_ = distrib(_rand);
+        };
+        // rands are now indexes in zero_vect of points in _input with seg id =0
+        int rand1 = zero_vects[rand1_];
+        int rand2 = zero_vects[rand2_];
+        int rand3 = zero_vects[rand3_];
         //std::cout << rand1 << '\t'<<rand2 <<'\t' << rand3 << '\n' ;
-    
+
         //take 3 random indices
-    
+
         PlaneDetector::Point p1 = _input_points[rand1];
         PlaneDetector::Point p2 = _input_points[rand2];
         PlaneDetector::Point p3 = _input_points[rand3];
-    
+
+        /*
+        while ( (linalg::distance(p1,p2) > 5*epsilon || linalg::distance(p1, p2) < epsilon) || (linalg::distance(p1, p3) > 5 * epsilon || linalg::distance(p1, p3) < epsilon) || (linalg::distance(p3, p2) > 5 * epsilon || linalg::distance(p3, p2) < epsilon))
+        {
+            // get a new point
+            std::cout << "jooo\t";
+        }
+        */
+
         //std::cout << p1.x << '\t' << p2.x << '\t' << p3.x << '\n';
 
         //make a plane
@@ -95,9 +112,9 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         // plane = normal vector and a point of center
         // other two points help make the normal using cross product
         //consider p1 to be the point wrt the vectors are formed
-    
-        double3  v1  = { p2.x - p1.x , p2.y - p1.y , p2.z - p1.z };
-        double3  v2  = { p3.x - p1.x , p3.y - p1.y , p3.z - p1.z };
+
+        double3  v1 = { p2.x - p1.x , p2.y - p1.y , p2.z - p1.z };
+        double3  v2 = { p3.x - p1.x , p3.y - p1.y , p3.z - p1.z };
         double3 normal = cross(v2, v1);
         double3 normalized_normal = normalize(normal);
 
@@ -109,7 +126,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         index_list.clear();
         int scorer = 0;
         int flag = 0;
-        for (int i=0 ; i< len_vec ; i++) //for every point in the dataset  except the 3 which define the plane
+        for (int i = 0; i < len_vec; i++) //for every point in the dataset  except the 3 which define the plane
         {
             if (i != rand1 || i != rand2 || i != rand3 || _input_points[i].segment_id == 0) //added last condition in case the point is already CLASSIFIED
             {
@@ -117,22 +134,22 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
                 // calculate the distance and check with epsilon
                 double3 point_vec = { _input_points[i].x - p1.x , _input_points[i].y - p1.y, _input_points[i].z - p1.z };
 
-                double dist = abs(dot(point_vec, normalized_normal)) ;
-            
+                double dist = abs(dot(point_vec, normalized_normal));
+
                 if (dist < epsilon)
-                {   
-                //std::cout << dist << '\n';
-                    // increment score by 1
+                {
+                    //std::cout << dist << '\n';
+                        // increment score by 1
                     scorer++;//one more point added to the plane
                     index_list.push_back(i);
-                    
+
                     if (index_list.size() > min_score)
-                    {                       
+                    {
                         //best plane found with min of 50 points
                         // set flag  =1
                         flag = 1;
                         //break;
-                     
+
                     }
                 }
             }
@@ -186,7 +203,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
         //implement the segmentation value updation for vectors here (for the best indices)
 
     }
-    
+
 }
 
 
