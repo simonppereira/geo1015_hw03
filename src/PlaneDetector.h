@@ -17,7 +17,7 @@
 //-- See https://github.com/sgorsten/linalg
 #include <linalg/linalg.h>
 using double3 = linalg::aliases::double3;
-
+using int3 = linalg::aliases::int3;
 /*
 The main class of this assignment. You are allowed to add functions and member variables for your own use.
 */
@@ -68,7 +68,7 @@ class PlaneDetector {
       return vect;
   }
 
-  double3 randfunc(int );
+  int3 randfunc();
 
   int get_seg_id() // function/ method used to get a new ID and append the new value to the end of seg_id_used vector
   {
