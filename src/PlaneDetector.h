@@ -22,16 +22,11 @@ using double3 = linalg::aliases::double3;
 The main class of this assignment. You are allowed to add functions and member variables for your own use.
 */
 class PlaneDetector {
-
-
   //-- you can add your own variables and functions here
-
-
   /*
   !!! DO NOT MODIFY below this line !!!
   */
   public:
-
   /*
   We define a Point struct that inherits from the double3 struct that is defined in linalg.h. 
   This means you can use a Point as a double3, ie. with all the linear algebra functions defined for double3 in linalg.h.
@@ -39,9 +34,11 @@ class PlaneDetector {
 
   NOTICE that the segment_id==0 (the default value) means that the point is not assigned to any plane.
   */
+
   struct Point : double3 {
     using double3::double3;
     int segment_id{0};
+    //std::vector<double3> norm_point_storer;
   };
 
   //-- The main plane detection function where you need to implement the RANSAC algorithm (in the PlaneDetector.cpp file)
@@ -57,6 +54,22 @@ class PlaneDetector {
     return _input_points;
   };
 
+  std::vector<int> get_segment_0_points()
+  {
+      // returns a vector containing indexes of points which have seg_id of 0
+      std::vector<int> vect = {};
+      for (int i=0; i< _input_points.size(); i++)
+      {
+          if (_input_points[i].segment_id == 0)
+          {
+              vect.push_back(i);
+          }
+      }
+      return vect;
+  }
+
+  double3 randfunc(int );
+
   int get_seg_id() // function/ method used to get a new ID and append the new value to the end of seg_id_used vector
   {
       ++current_plane_no;
@@ -64,8 +77,7 @@ class PlaneDetector {
   }
 
   private:
-  int current_plane_no = 0;
-  
+      int current_plane_no = 0;
   //-- This variable holds the entire input point cloud after calling read_ply()
   std::vector<Point> _input_points;
 
