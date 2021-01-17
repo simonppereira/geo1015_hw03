@@ -185,6 +185,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
     }
     
     int score_best = 0;
+    PlaneDetector::plane_abcd plane_best = {};
     std::vector<int> index_list_best = {};
     int len_vec = ransac_points.size();
     
@@ -197,7 +198,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
         //take random indices from 0 segment vector
         if (len_zerovec < min_score)
         {
-            std::cout << "zero vec is empty\n";
+            //std::cout << "zero vec is empty\n";
             break;
         }
 
@@ -224,14 +225,20 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
         double3 normal = cross(v2, v1);
         double3 normalized_normal = normalize(normal);
 
-        std::vector<double3> vector_params = { normalized_normal , p1 };
-        //std::cout << normalized_normal.x << '\t' << normalized_normal.y<<'\t' << normalized_normal.z << '\n';
-        //std::cout << "normal    " << '\t' << normal.x << '\t' << normal.y << '\t' << normal.z << '\n';
-        //std::cout << "normalized" << '\t' << normalized_normal.x << '\t' << normalized_normal.y << '\t' << normalized_normal.z << '\n';
+        float
+            a = normalized_normal[0],
+            b = normalized_normal[1],
+            c = normalized_normal[2],
+            d = -(a * p1.x) - (b * p1.y) - (c*p1.z) ; 
+
+        PlaneDetector::plane_abcd plane_current = {a,b,c,d}; //plane params stored
+
+        
         std::vector<int> index_list = {};
         index_list.clear();
         int scorer = 0;
         int flag = 0;
+
         for (int i = 0; i < len_vec; i++) //for every point in the dataset  except the 3 which define the plane
         {
             //i is the index in ransac_points not in _input_points
@@ -242,6 +249,8 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
                 double3 point_vec = { ransac_points[i].x - p1.x , ransac_points[i].y - p1.y, ransac_points[i].z - p1.z };
 
                 double dist = abs(dot(point_vec, normalized_normal));
+
+
 
                 if (dist < epsilon)
                 {
@@ -257,6 +266,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
         if (scorer > score_best && scorer > min_score) //score obtained in this iter is better than those before
         {
             score_best = scorer; //update best score
+            plane_best = plane_current;//store best plane
             //if (flag == 1) // if there were at least 50 points found in the plane
             //{
             index_list_best = index_list; //update best list of indices
@@ -274,15 +284,40 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
         }
     } //end parent for 
     //update values for the best plane found
-    std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
+    //std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
     // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
-    std::cout << index_list_best.size() << " this is the size of vector we are now gonna write \n";
+    //std::cout << index_list_best.size() << " this is the size of vector we are now gonna write \n";
     if (index_list_best.size() > min_score)
     {
-        std::cout << "list of index is smaller than min score \n";
+        //std::cout << "list of index is smaller than min score \n";
 
         int new_id = PlaneDetector::get_seg_id();
         std::cout << "planes are to be updated with value : " << new_id << '\n';
+
+        for (int i=0 ; i< _input_points.size() ; i++)
+        {
+            double &
+                A = plane_best[0],
+                B = plane_best[1],
+                C = plane_best[2],
+                D = plane_best[3];
+
+            
+            //i is index of input points
+
+            PlaneDetector::Point* p = &_input_points[i];
+            //check dist of point
+            double dist2 = linalg::abs( ( (A * (*p).x) + (B * (*p).y) + (C * (*p).z) + D) / (A*A + B*B + C*C + D*D) );
+
+            if (dist2 < epsilon * epsilon)
+            {
+                //change segment id value
+                ((*p)[i]).segment_id = new_id;
+            }
+        }
+
+        /*
+        // USUAL IMPLEMENTATION {FOR A SUBSET}
         for (int i = 0; i < index_list_best.size(); i++)
         {
             //index list best has the indices of planes from ransac_points
@@ -299,7 +334,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
 
         }
         //implement the segmentation value updation for vectors here (for the best indices)
-
+        */
     }
 
 }
@@ -400,7 +435,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k, int n_pla
 
         //(*(points_for_ransac[0])).segment_id = 100;
         //PlaneDetector::Point p = points_for_ransac[0];
-        std::cout << "hola \t" << (*(points_for_ransac[0])).segment_id << '\n';
+        //std::cout << "hola \t" << (*(points_for_ransac[0])).segment_id << '\n';
         //testvector = std::vector<PlaneDetector::Point>(_input_points.begin() + 1, _input_points.end() - 4000)
 
 
