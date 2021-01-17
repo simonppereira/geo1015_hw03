@@ -2,10 +2,10 @@
   GEO1015.2020
   hw03 
   --
-  [YOUR NAME] 
-  [YOUR STUDENT NUMBER] 
-  [YOUR NAME] 
-  [YOUR STUDENT NUMBER] 
+  Georgios Triantafyllou [5381738]
+  Simon Pena Pereira     [5391210]
+  Pratyush Kumar         [5359252]
+
 */
 
 
@@ -147,7 +147,7 @@ int3 PlaneDetector::randfunc(std::vector<Point> inp_pts)
     int rand3_ = 0;
     
     //get unique rand
-    while (rand1_ == rand2_ && rand1_ == rand3_ && rand2_ == rand3_)
+    while (rand1_ == rand2_ && rand1_ == rand3_ && rand2_ == rand3_ && len_zerovec>3)
     {
         std::uniform_int_distribution<int> distrib(0, len_zerovec - 1);
         rand1_ = distrib(_rand);
@@ -242,7 +242,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
         for (int i = 0; i < len_vec; i++) //for every point in the dataset  except the 3 which define the plane
         {
             //i is the index in ransac_points not in _input_points
-            if (i != rand1 || i != rand2 || i != rand3 || ransac_points[i].segment_id == 0) //added last condition in case the point is already CLASSIFIED
+            if (i != rand1 || i != rand2 || i != rand3 ) //added last condition in case the point is already CLASSIFIED
             {
                 // for all points except the 3 selected ones
                 // calculate the distance and check with epsilon
@@ -293,7 +293,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
 
         int new_id = PlaneDetector::get_seg_id();
         std::cout << "planes are to be updated with value : " << new_id << '\n';
-
+        
         for (int i=0 ; i< _input_points.size() ; i++)
         {
             double &
@@ -304,18 +304,25 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
 
             
             //i is index of input points
-
-            PlaneDetector::Point* p = &_input_points[i];
+            PlaneDetector::Point* p;
+            p = &(_input_points[i]);
+            //std::cout << _input_points[i].x<<'\t'<< &(_input_points[i])<<'\n';
+            //std::cout << (*p).x<<'\n';
             //check dist of point
-            double dist2 = linalg::abs( ( (A * (*p).x) + (B * (*p).y) + (C * (*p).z) + D) / (A*A + B*B + C*C + D*D) );
+            double dist2 = linalg::abs( ( (A * (*p).x) + (B * (*p).y) + (C * (*p).z) + D) / (A*A + B*B + C*C) );
 
             if (dist2 < epsilon * epsilon)
             {
                 //change segment id value
-                ((*p)[i]).segment_id = new_id;
+                if ( (*p).segment_id == 0)
+                {
+                    (*p).segment_id = new_id;
+                }
+                
+                
             }
         }
-
+        
         /*
         // USUAL IMPLEMENTATION {FOR A SUBSET}
         for (int i = 0; i < index_list_best.size(); i++)
@@ -355,98 +362,101 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k, int n_pla
   //get a random point
     //run the while loop till we run out of points to visit or points left <min score
     int runner = _input_points.size();
-    std::vector<PlaneDetector::Point> pt_to_visit = _input_points;
+    std::vector<PlaneDetector::Point> pt_to_visit = {};
+    std::copy(_input_points.begin(), _input_points.end(), back_inserter(pt_to_visit)); 
 
 
     while ( pt_to_visit.size() > min_score )
         {
 
-        std::vector<int> my_vec_of_zeros = {};
-        int counter = 0;
+            std::vector<int> my_vec_of_zeros = {};
+            int counter = 0;
 
-        // make a list of indices from input vector which have id =0
-        for (int i = 0; i < _input_points.size(); i++)
-        {
-            if (_input_points[i].segment_id == 0)
+            // make a list of indices from input vector which have id =0
+            for (int i = 0; i < _input_points.size(); i++)
             {
-                my_vec_of_zeros.push_back(i);
+                if (_input_points[i].segment_id == 0)
+                {
+                    my_vec_of_zeros.push_back(i);
+                }
             }
-        }
-
-
-        std::uniform_int_distribution<int> distrib(0, my_vec_of_zeros.size() - 1);
-        //int rand = 0;
-        int rand = distrib(_rand);
-
-        PlaneDetector::Point p = _input_points[my_vec_of_zeros[rand]]; //p always has a segment id of 0
-
-    /*    while (rand == 0 && p.segment_id != 0)
-            {
+            PlaneDetector::Point p;
+            if (my_vec_of_zeros.size() > min_score) {
+                std::uniform_int_distribution<int> distrib(0, my_vec_of_zeros.size() - 1);
+                //int rand = 0;
                 int rand = distrib(_rand);
-                PlaneDetector::Point p = _input_points[rand];
+                p = _input_points[my_vec_of_zeros[rand]]; //p always has a segment id of 0
             }
-      */
+            else break;
 
-
-
-      //std::vector<double2> minmaxvec = get_min_max(_input_points); // returns vector containing double2 data each with a .x and .y
-      // make an array of double3 containing coordinates of the boxes
-
-      //std::vector<double3> cube_coords = {};
-
-      //for (double i = minmaxvec[0].x; i < minmaxvec[0].y; i += dist) //x loop
-      //{
-      //    for (double j = minmaxvec[1].y; j > minmaxvec[1].x; j -= dist) // y loop
-      //    {
-      //        for (double k = minmaxvec[2].y; k > minmaxvec[2].x; k -= dist) //z loop
-      //        {
-      //            cube_coords.push_back( {i,j,k} );
-      //        }
-      //    }
-      //}
-
-      //get index of points from within a boundind box
-
-      /*for (int coord = 0; coord < cube_coords.size(); coord++)
-      //{*/
-      //    std::vector<int> distances_from_pt = dist_return(cube_coords[coord], dist);
-      //    if (distances_from_pt[0] == (-10))
-      //    {   
-      //        std::cout << "not even 20 points found\n";
-      //        continue; //goto next coordinate
-      //    }
-        double3 selected_point = { p.x,p.y,p.z };
-        //indpt in sphere is vector of indicesd wrt _input_points
-        std::vector<int> index_pt_in_sphere = dist_return(selected_point, double(dist));
-
-        std::vector<PlaneDetector::Point*> points_for_ransac = {};
-        for (int i = 0; i < index_pt_in_sphere.size(); i++)
-        {
-            //i is the index instance
-            points_for_ransac.push_back(&_input_points[index_pt_in_sphere[i]]);
-            if (_input_points[index_pt_in_sphere[i]].segment_id != 0)
-            {
-                if( !pt_to_visit.empty() ) pt_to_visit.pop_back();
-            }
             
-            //_input_points[distances_from_pt[i]].segment_id = count;
-        }
-        //distances = dist_return(double3 pt, double dist_around);
-
-        //(*(points_for_ransac[0])).segment_id = 100;
-        //PlaneDetector::Point p = points_for_ransac[0];
-        //std::cout << "hola \t" << (*(points_for_ransac[0])).segment_id << '\n';
-        //testvector = std::vector<PlaneDetector::Point>(_input_points.begin() + 1, _input_points.end() - 4000)
+        /*    while (rand == 0 && p.segment_id != 0)
+                {
+                    int rand = distrib(_rand);
+                    PlaneDetector::Point p = _input_points[rand];
+                }
+          */
 
 
-        for (int planess = 0; planess <= n_planes; planess++)
-        {
-            PlaneDetector::RANSACinator(points_for_ransac , epsilon, min_score, k);
-        }// end child loop
 
-    //}// end parent loop
-        /*runner -= index_pt_in_sphere.size();
-        std::cout << runner<<'\t'<< index_pt_in_sphere.size() <<'\t' << '\n';*/
+          //std::vector<double2> minmaxvec = get_min_max(_input_points); // returns vector containing double2 data each with a .x and .y
+          // make an array of double3 containing coordinates of the boxes
+
+          //std::vector<double3> cube_coords = {};
+
+          //for (double i = minmaxvec[0].x; i < minmaxvec[0].y; i += dist) //x loop
+          //{
+          //    for (double j = minmaxvec[1].y; j > minmaxvec[1].x; j -= dist) // y loop
+          //    {
+          //        for (double k = minmaxvec[2].y; k > minmaxvec[2].x; k -= dist) //z loop
+          //        {
+          //            cube_coords.push_back( {i,j,k} );
+          //        }
+          //    }
+          //}
+
+          //get index of points from within a boundind box
+
+          /*for (int coord = 0; coord < cube_coords.size(); coord++)
+          //{*/
+          //    std::vector<int> distances_from_pt = dist_return(cube_coords[coord], dist);
+          //    if (distances_from_pt[0] == (-10))
+          //    {   
+          //        std::cout << "not even 20 points found\n";
+          //        continue; //goto next coordinate
+          //    }
+            double3 selected_point = { p.x,p.y,p.z };
+            //indpt in sphere is vector of indicesd wrt _input_points
+            std::vector<int> index_pt_in_sphere = dist_return(selected_point, double(dist));
+
+            std::vector<PlaneDetector::Point*> points_for_ransac = {};
+            for (int i = 0; i < index_pt_in_sphere.size(); i++)
+            {
+                //i is the index instance
+                points_for_ransac.push_back(&_input_points[index_pt_in_sphere[i]]);
+                if (_input_points[index_pt_in_sphere[i]].segment_id != 0)
+                {
+                    if( !pt_to_visit.empty() ) pt_to_visit.pop_back();
+                }
+            
+                //_input_points[distances_from_pt[i]].segment_id = count;
+            }
+            //distances = dist_return(double3 pt, double dist_around);
+
+            //(*(points_for_ransac[0])).segment_id = 100;
+            //PlaneDetector::Point p = points_for_ransac[0];
+            //std::cout << "hola \t" << (*(points_for_ransac[0])).segment_id << '\n';
+            //testvector = std::vector<PlaneDetector::Point>(_input_points.begin() + 1, _input_points.end() - 4000)
+
+
+            for (int planess = 0; planess <= n_planes; planess++)
+            {
+                PlaneDetector::RANSACinator(points_for_ransac , epsilon, min_score, k);
+            }// end child loop
+
+        //}// end parent loop
+            /*runner -= index_pt_in_sphere.size();
+            std::cout << runner<<'\t'<< index_pt_in_sphere.size() <<'\t' << '\n';*/
         }
 }
 
