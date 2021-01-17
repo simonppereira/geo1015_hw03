@@ -323,7 +323,7 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k, int n_pla
     std::vector<PlaneDetector::Point> pt_to_visit = _input_points;
 
 
-    while ( !pt_to_visit.empty() || pt_to_visit.size() > min_score )
+    while ( pt_to_visit.size() > min_score )
         {
 
         std::vector<int> my_vec_of_zeros = {};
@@ -389,7 +389,11 @@ void PlaneDetector::detect_plane(double epsilon, int min_score, int k, int n_pla
         {
             //i is the index instance
             points_for_ransac.push_back(&_input_points[index_pt_in_sphere[i]]);
-            pt_to_visit.pop_back();
+            if (_input_points[index_pt_in_sphere[i]].segment_id != 0)
+            {
+                if( !pt_to_visit.empty() ) pt_to_visit.pop_back();
+            }
+            
             //_input_points[distances_from_pt[i]].segment_id = count;
         }
         //distances = dist_return(double3 pt, double dist_around);
