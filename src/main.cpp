@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 	float epsilon = j["epsilon"];
 	std::string input_file = j["input_file"];
 	std::string output_file = j["output_file"];
+	int dist = j["distance"];
 
 	PlaneDetector detector;
 
@@ -67,14 +68,35 @@ int main(int argc, char** argv)
 
 	//-- perform plane detection and time how long it takes
   auto start = std::chrono::high_resolution_clock::now();
+   /*
+  std::vector<double2> *minmaxvec = detector.get_min_max(detector.get_input_points);
+  int dist_pt = 50;
 
-	for (int i = 0; i < n_planes; ++i) {
-		detector.detect_plane(epsilon, min_score, k);
-	}
+
+  for (double i = *minmaxvec[0].x; i < *minmaxvec[0].y; i += dist_pt) //x loop
+  {
+	  for (double j = *minmaxvec[1].x; j < *minmaxvec[1].y; j += dist_pt) // y loop
+	  {
+		  for (double k = *minmaxvec[2].x; k < *minmaxvec[2].y; k += dist_pt) //z loop
+		  {
+			  //  this value of i,j,k is lower front coordinate for every box
+			  linalg::aliases::double3 p = { i,j,k };
+	
+
+	for (int i = 0; i < n_planes; ++i)
+			  { */
+  //int dist = 50;
+				  detector.detect_plane( epsilon, min_score, k, n_planes, dist); // call detect plane with the no of planes to be identified
+		/*	  }
+		  }
+	  }
+  }*/
+
+
 
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
-  std::cout << std::fixed << std::setprecision(3) << "--- Plane detection took " << elapsed.count() << " seconds ---" << std::endl;
+  std::cout << std::fixed << std::setprecision(3) << "--- Plane detection took ooh lala " << elapsed.count() << " seconds ---" << std::endl;
 
 
 	//-- open the viewer
