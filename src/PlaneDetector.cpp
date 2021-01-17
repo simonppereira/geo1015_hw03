@@ -8,7 +8,6 @@
 
 */
 
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -242,7 +241,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
         for (int i = 0; i < len_vec; i++) //for every point in the dataset  except the 3 which define the plane
         {
             //i is the index in ransac_points not in _input_points
-            if (i != rand1 || i != rand2 || i != rand3 ) //added last condition in case the point is already CLASSIFIED
+            if (i != rand1 || i != rand2 || i != rand3 || ransac_points[i].segment_id == 0) //added last condition in case the point is already CLASSIFIED
             {
                 // for all points except the 3 selected ones
                 // calculate the distance and check with epsilon
@@ -293,7 +292,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
 
         int new_id = PlaneDetector::get_seg_id();
         std::cout << "planes are to be updated with value : " << new_id << '\n';
-        
+        /*
         for (int i=0 ; i< _input_points.size() ; i++)
         {
             double &
@@ -322,8 +321,8 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
                 
             }
         }
+        */
         
-        /*
         // USUAL IMPLEMENTATION {FOR A SUBSET}
         for (int i = 0; i < index_list_best.size(); i++)
         {
@@ -341,7 +340,7 @@ void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_poi
 
         }
         //implement the segmentation value updation for vectors here (for the best indices)
-        */
+        
     }
 
 }
@@ -493,7 +492,7 @@ void PlaneDetector::write_ply(std::string filepath)
                 _input_points[i].z,
                 _input_points[i].segment_id
             );
-            if (i = _input_points.size())  ofs << buf;
+            if (i == _input_points.size())  ofs << buf;
             else ofs << buf << '\n';
         }
 
