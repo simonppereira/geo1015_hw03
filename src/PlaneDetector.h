@@ -16,6 +16,7 @@
 //-- Simple linear algebra library that you can use for distance computations etc
 //-- See https://github.com/sgorsten/linalg
 #include <linalg/linalg.h>
+using double4 = linalg::aliases::double4;
 using double3 = linalg::aliases::double3;
 using double2 = linalg::aliases::double2;
 using int3 = linalg::aliases::int3;
@@ -40,6 +41,13 @@ class PlaneDetector {
     using double3::double3;
     int segment_id{0};
     //std::vector<double3> norm_point_storer;
+  };
+  
+
+
+  struct plane_abcd : double4 //store abcd of plane
+  {
+    using double4::double4;
   };
 
   //-- The main plane detection function where you need to implement the RANSAC algorithm (in the PlaneDetector.cpp file)
@@ -78,7 +86,24 @@ class PlaneDetector {
       }
       return vect;
   }
+  /*
+  bool PlaneDetector::point_in_plane(plane_abcd & plane , Point& pt, double e)
+  {
+      if (pt.segment_id != 0) return false;
 
+      //else
+      //dissociate plane
+      double& a = plane[0];
+      double& b = plane[1];
+      double& c = plane[2];
+      double& d = plane[3];
+
+      double dist2 = (a * pt.x + b * pt.y + c * pt.z + d) / (d*d+c*c+b*b+a*a);
+      if (dist2 < e * e)
+      {
+          if (p.normal_to_plane == double3{ 0,0,0 });//normal of plane is same as 
+      }
+  }*/
 
   
   int get_seg_id() // function/ method used to get a new ID and append the new value to the end of seg_id_used vector
