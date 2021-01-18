@@ -1,13 +1,11 @@
 /*
   GEO1015.2020
-  hw03 
+  hw03
   --
-  Pratyush Kumar
-  5359252
-  [YOUR NAME] 
-  [YOUR STUDENT NUMBER] 
+  Georgios Triantafyllou [5381738]
+  Simon Pena Pereira     [5391210]
+  Pratyush Kumar         [5359252]
 */
-
 
 #include <iostream>
 #include <fstream>
@@ -16,12 +14,13 @@
 #include <iterator>
 #include <algorithm>
 
-#include <random> //uniform_int_distribution
-
 #include "PlaneDetector.h"
 
 using double3 = linalg::aliases::double3;
+using double2 = linalg::aliases::double2;
+using int3 = linalg::aliases::int3;
 
+int count = 0;
 /*
 !!! TO BE COMPLETED !!!
 
@@ -42,205 +41,320 @@ Output:
     Updated .segment_id's on the inliers in the newly detected plane. The inliers contain both the
     consensus set and minimal set.
 */
-
-int x = 0;
-
-void PlaneDetector::detect_plane(double epsilon, int min_score, int k)
+std::vector<double2> PlaneDetector::get_min_max(std::vector<Point> pt)
 {
-  //-- TIP
+    // .x gives the min
+    // .y gives the max
+    double2 x = { 999999, -1000 };
+    double2 y = { 999999, -1000 };
+    double2 z = { 999999, -1000 };
+
+    for (int i=0; i<pt.size(); i++)
+    {
+        //update min and max values
+        //update x values
+        if (pt[i].x < x.x) //min
+        {
+            x.x = pt[i].x;
+        }
+        if (pt[i].x > x.y) //max
+        {
+            x.y = pt[i].x;
+        }
+        //update y values
+        if (pt[i].y < y.x) //min
+        {
+            y.x = pt[i].y;
+        }
+        if (pt[i].y > y.y) //max
+        {
+            y.y = pt[i].y;
+        }
+        //update z values
+        if (pt[i].z < z.x) //min
+        {
+            z.x = pt[i].z;
+        }
+        if (pt[i].z > z.y) //max
+        {
+            z.y = pt[i].z;
+        }
+
+    }
     
-  //-- access the input points from the _input_points:
-  
-    //for (auto it = std::begin(_input_points); it != std::end(_input_points); ++it) {
-     //   std::cout << *it << "\n";
+    std::vector<double2> ptt = { x,y,z };
+    return ptt;
+}
+
+std::vector<int> PlaneDetector::dist_return(double3 pt, double dist_around)
+{
+    /*returns a vector of indexes of points which lie within a search radius wrt the given pt*/
+    std::vector<int> dist_list = {};
+    for (int i = 0; i < _input_points.size(); i++)//i is index from _inpout_points
+    {
+        double3 pt_from_input = { _input_points[i].x ,_input_points[i].y ,_input_points[i].z };
+        double d = distance(pt_from_input, pt);
+        if (d < dist_around) dist_list.push_back(i);
+    }
+    if (dist_list.size() > 100)
+    {
+        return dist_list;
+    }
+    else
+    {
+    std::vector<int> a = {};
+        a.push_back(-10);
+        return a;
+    }
+
+}
+
+
+int3 PlaneDetector::randfunc(std::vector<Point> inp_pts)
+{
+    /*returns three indices in inp_pts */
+    std::vector<int> zero_vects = PlaneDetector::get_segment_0_points( inp_pts );
+    int len_zerovec = zero_vects.size();
+    if (len_zerovec <= 3)
+    {
+        std::cout << "cannot make 3 unique points \n";
+            //break;
+    }
+    int rand1_ = 0;
+    int rand2_ = 0;
+    int rand3_ = 0;
     
-        
+    //get unique rand
+    while (rand1_ == rand2_ && rand1_ == rand3_ && rand2_ == rand3_ && len_zerovec>3)
+    {
+        std::uniform_int_distribution<int> distrib(0, len_zerovec - 1);
+        rand1_ = distrib(_rand);
+        rand2_ = distrib(_rand);
+        rand3_ = distrib(_rand);
+    };
+    
+    // rands are now indexes in zero_vect of points in _input with seg id =0
+    int rand1 = zero_vects[rand1_];
+    int rand2 = zero_vects[rand2_];
+    int rand3 = zero_vects[rand3_];
+    
+    int3 pt = { rand1,rand2,rand3 };
+    return pt; //index of 3 unique random points wrt inp_pts
+}
 
-  //int segment_id_of_point_i = _input_points[i].segment_id;
- 
-  //-- set the segment_id of point i:
+///////////
 
-
-
-  //-- access the input points from the _input_points: 
-
-    //################################//
-      // W.O.R.K. F.L.O.W. H.E.R.E. //
-    //###############################//
-
-
-    //if score was 50 or more then good
-
-    //// ############# 
+void PlaneDetector::RANSACinator(std::vector<PlaneDetector::Point *>& ransac_points_arg, double epsilon, int min_score, int k)
+{
     // while score > min_score do: keep getting 3 new points, calculate plane
     // find score for that plane
     // if min score achieved then all those points are of a plane, get out of loop
 
-
-    // for loop here
-    int score_best = 0;
-    std::vector<int> index_list_best = {};
-    
-    for (int iter_ = 0 ; iter_<k; iter_++) //loop through for k times
+    std::vector<PlaneDetector::Point> ransac_points = {};
+    for (int i=0 ; i<ransac_points_arg.size(); i++)
     {
-        //take random indices till k is reached:
-        int len_vec = _input_points.size();
-        //std::cout << len_vec << "\n";
+        ransac_points.push_back( (*(ransac_points_arg[i]))  );
+    }
+    
+    int score_best = 0;
 
-        std::uniform_int_distribution<int> distrib(0, len_vec - 1);
-        int rand1 = distrib(_rand);
-        int rand2 = distrib(_rand);
-        int rand3 = distrib(_rand);
-        // TODO add condition if the random points happen to be the same
-        
-        
-        int y= x++;
-   
-        while (rand1 == rand2 || rand1 == rand3 || rand2 == rand3) {
-     
-            rand1 = distrib(_rand);
-            rand2 = distrib(_rand);
-            rand3 = distrib(_rand);
-            //std::cout << "something went wrong";
+    std::vector<int> index_list_best = {};
+    int len_vec = ransac_points.size();
+
+    for (int iter_ = 0; iter_ < k; iter_++) //loop through for k times
+    {
+        std::vector<int> zero_vects = get_segment_0_points(ransac_points);
+        int len_zerovec = zero_vects.size();
+        //take random indices from 0 segment vector
+        if (len_zerovec < min_score)
+        {
+            break;
         }
-        std::cout << y << "\t" << rand1 << '\t' << rand2 << '\t' << rand3 << '\n';
 
         //take 3 random indices
-    
-        PlaneDetector::Point p1 = _input_points[rand1];
-        PlaneDetector::Point p2 = _input_points[rand2];
-        PlaneDetector::Point p3 = _input_points[rand3];
-    
-        //std::cout << p1.x << '\t' << p2.x << '\t' << p3.x << '\n';
+        int3 rand_pt_indexes = randfunc(ransac_points);
+        int rand1 = rand_pt_indexes.x;
+        int rand2 = rand_pt_indexes.y;
+        int rand3 = rand_pt_indexes.z;
 
-        //make a plane
-        // find params for the plane
-        // plane = normal vector and a point of center
-        // other two points help make the normal using cross product
-        //consider p1 to be the point wrt the vectors are formed
+        PlaneDetector::Point p1 = ransac_points[rand1];
+        PlaneDetector::Point p2 = ransac_points[rand2];
+        PlaneDetector::Point p3 = ransac_points[rand3];
     
-        double3  v1  = { p2.x - p1.x , p2.y - p1.y , p2.z - p1.z };
-        double3  v2  = { p3.x - p1.x , p3.y - p1.y , p3.z - p1.z };
+        //make a plane
+        // find params for the plane  |  plane = normal vector and a point of center
+        // other two points help make the normal using cross product  | consider p1 to be the point wrt the vectors are formed
+        //https://mathinsight.org/distance_point_plane#:~:text=The%20length%20of%20the%20gray,dot%20product%20v%E2%8B%85n this was used for code below
+
+        double3  v1 = { p2.x - p1.x , p2.y - p1.y , p2.z - p1.z };
+        double3  v2 = { p3.x - p1.x , p3.y - p1.y , p3.z - p1.z };
         double3 normal = cross(v2, v1);
         double3 normalized_normal = normalize(normal);
-        //std::cout << normalized_normal.x << '\t' << normalized_normal.y<<'\t' << normalized_normal.z << '\n';
-    
+
         std::vector<int> index_list = {};
+        index_list.clear();
         int scorer = 0;
         int flag = 0;
-        for (int i=0 ; i< len_vec ; i++) //for every point in the dataset  except the 3 which define the plane
-        {
-            if (i != rand1 || i != rand2 || i != rand3 || _input_points[i].segment_id == 0) //added last condition in case the point is already CLASSIFIED
-            {
-                // for all points except the 3 selected ones
-                // calculate the distance and check with epsilon
-                double3 point_vec = { _input_points[i].x - p1.x ,_input_points[i].y - p1.y,_input_points[i].z - p1.z };
 
-                double dist = abs(dot(point_vec, normalized_normal)) ;
-                //std::cout << "distance  " << dist << "\n";
+        for (int i = 0; i < len_vec; i++) //for every point in the dataset  except the 3 which define the plane
+        {
+            //i is the index in ransac_points not in _input_points
+            if (i != rand1 || i != rand2 || i != rand3 || ransac_points[i].segment_id == 0) //added last condition in case the point is already CLASSIFIED
+            {
+                // for all points except the 3 selected ones  calculate the distance and check with epsilon
+                double3 point_vec = { ransac_points[i].x - p1.x , ransac_points[i].y - p1.y, ransac_points[i].z - p1.z };
+                double dist = abs(dot(point_vec, normalized_normal));
+
                 if (dist < epsilon)
                 {
-                    // increment score by 1
-                    scorer++;
-                    index_list.push_back(i);
-                    if (index_list.size() > min_score)
-                    {                       
-                        //best plane found with min of 50 points
-                        // set flag  =1
-                        flag = 1;
-                        //break;
-                    }
+                    scorer++;//one more point added to the plane
+                    index_list.push_back(i); //list of indices wrt ransac_points
                 }
             }
         } //end child for
 
-        //insert conditional schecking score
-        if (scorer > score_best) //score obtained in this iter is better than those before
+        // conditional checking score
+        if (scorer > score_best && scorer > min_score) //score obtained in this iter is better than those before
         {
-            score_best = scorer ; //update best score
-            if (flag==1) // if there were at least 50 points found in the plane
-            {
-                index_list_best = index_list; //update best list of indices
-                index_list_best.push_back(rand1);
-                index_list_best.push_back(rand2);
-                index_list_best.push_back(rand3);
-            }
-            
-        }     
-
+            score_best = scorer; //update best score
+            index_list_best = index_list; //update best list of indices
+            index_list_best.push_back(rand1);
+            index_list_best.push_back(rand2);
+            index_list_best.push_back(rand3);
+        }
     } //end parent for 
-    
+
     //update values for the best plane found
-    //std::cout << "we reached a plane which works \t end of the loops so far" << '\n';
-    // initiate a global variable to store the point and normal of the plane so that some other plane does not coincide with it
-    for (int i =0 ; i< index_list_best.size() ; i++)
+    if (index_list_best.size() > min_score)
     {
-        //read indices and update the segment ID
-        _input_points[i].segment_id = 10;// PlaneDetector::get_seg_id();
+        int new_id = PlaneDetector::get_seg_id();
+        std::cout << "planes are to be updated with value : " << new_id << '\n';
+       
+        // USUAL IMPLEMENTATION {FOR A SUBSET}
+        for (int i = 0; i < index_list_best.size(); i++)
+        {
+            //index list best has the indices of planes from ransac_points
+            // neede to update the segment id of the points in ransac_points
+            // but should also update in input_points
+
+            if (  (*(ransac_points_arg[index_list_best[i]])).segment_id == 0)
+            {
+                (*(ransac_points_arg[ index_list_best[i] ])).segment_id = new_id;
+            }
+        }
     }
-    //implement the segmentation value updation for vectors here (for the best indices)
-
-
-    /*
-    double x_of_point_i = _input_points[i].x;
-    int segment_id_of_point_i = _input_points[i].segment_id;
-    //-- set the segment_id of point i:
-    _input_points[i].segment_id = 1;
-    //-- TIP
-    //-- Generating random numbers between 0 and 100
-    std::uniform_int_distribution<int> distrib(0, 100);
-    int my_random_number = distrib(_rand);
-    //-- see https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution for more info
-    _input_points[i].segment_id = my_random_number;
-    */
 
 }
-/*
-int PlaneDetector::get_seg_id()
+
+
+/////////////////////////    D.E.T.E.C.T   P.L.A.N.E.  //////////////////////
+void PlaneDetector::detect_plane(double epsilon, int min_score, int k, int n_planes, int dist)
 {
-    // get a segment id that hasnt been used yet
-    //if first usage, only 1 is in the id
-    if (seg_id_used.size() == 1)
-    {
-        return 1;
-    }
-    else
-    {
-        int seg_counter = seg_id_used.end() ; //get last used id
-        seg_counter++; //increment the id value by 1
-        seg_id_used.push_back(seg_counter); // push this to the end of the vector of ID's
-        return seg_counter; //return the new id
-    }
-}
+    //################################//
+         //  W.O.R.K. F.L.O.W.  //
+    //###############################//
 
-*/
+  //for sphere in sphere coordinate list 
+  //ransacinator(sphere)
+  //get a random point
+  //run the while loop till we run out of points to visit or points left <min score
 
+    std::vector<PlaneDetector::Point> pt_to_visit = {};
+    std::copy(_input_points.begin(), _input_points.end(), back_inserter(pt_to_visit)); 
 
+    while ( pt_to_visit.size() > min_score )
+        {
+
+            std::vector<int> my_vec_of_zeros = {};
+            int counter = 0;
+
+            // make a list of indices from input vector which have id =0
+            for (int i = 0; i < _input_points.size(); i++)
+            {
+                if (_input_points[i].segment_id == 0)
+                {
+                    my_vec_of_zeros.push_back(i);
+                }
+            }
+            PlaneDetector::Point p;
+            if (my_vec_of_zeros.size() > min_score) {
+                std::uniform_int_distribution<int> distrib(0, my_vec_of_zeros.size() - 1);
+                //int rand = 0;
+                int rand = distrib(_rand);
+                p = _input_points[my_vec_of_zeros[rand]]; //p always has a segment id of 0
+            }
+            else break;
+
+            double3 selected_point = { p.x,p.y,p.z };
+            //indpt in sphere is vector of indicesd wrt _input_points
+            std::vector<int> index_pt_in_sphere = dist_return(selected_point, double(dist));
+
+            std::vector<PlaneDetector::Point*> points_for_ransac = {};
+            for (int i = 0; i < index_pt_in_sphere.size(); i++)
+            {
+                //i is the index instance
+                points_for_ransac.push_back(&_input_points[index_pt_in_sphere[i]]);
+                if (_input_points[index_pt_in_sphere[i]].segment_id != 0)
+                {
+                    if( !pt_to_visit.empty() ) pt_to_visit.pop_back();
+                }
+            
+                //_input_points[distances_from_pt[i]].segment_id = count;
+            }
+
+            for (int planess = 0; planess <= n_planes; planess++)
+            {
+                PlaneDetector::RANSACinator(points_for_ransac , epsilon, min_score, k);
+            }// end child loop
+        }//end of while
+
+}//end of func
 
 
 // PLY I/O
 
 /*
-!!! TO BE COMPLETED !!!
-
 Function that writes the entire point cloud including the segment_id of each point to a .ply file
 
 Input:
    filepath:  path of the .ply file to write the points with segment id
 */
-void PlaneDetector::write_ply(std::string filepath) {
-    std::cout << "Writing file now to " << filepath << std::endl;
-    std::ofstream ofs(filepath.c_str(), std::ofstream::out);
+void PlaneDetector::write_ply(std::string filepath)
+{
+    std::cout<<"Writing file now to " << filepath << std::endl ;
+    std::ofstream ofs( filepath.c_str() , std::ofstream::out);
     if (ofs.is_open())
-    {
-        ofs << "lorem ipsum"; 
-        ofs.close();
+    {     
+        char buf[65];
+        ofs << "ply" << "\n";
+        ofs << "format ascii 1.0" << "\n";
+        ofs << "element vertex " << _input_points.size() << "\n";
+        ofs << "property float x" << "\n";
+        ofs << "property float y" << "\n";
+        ofs << "property float z" << "\n";
+        ofs << "property int segment_id" << "\n";
+        ofs << "end_header" << "\n";
+
+        for (int i = 0; i < _input_points.size(); i++)
+        {
+            sprintf(buf, "%f %f %f %d",
+                _input_points[i].x,
+                _input_points[i].y,
+                _input_points[i].z,
+                _input_points[i].segment_id
+            );
+            if (i == _input_points.size())  ofs << buf;
+            else ofs << buf << '\n';
+        }
+
+        ofs.close();       
     }
     else
     {
         std::cout << "Unable to write sed file noises";
     }
 }
+
 /*
 !!! DO NOT MODIFY read_ply() !!!
 
