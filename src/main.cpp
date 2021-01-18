@@ -2,10 +2,9 @@
   GEO1015.2020
   hw03
   --
-  [YOUR NAME]
-  [YOUR STUDENT NUMBER]
-  [YOUR NAME]
-  [YOUR STUDENT NUMBER]
+  Georgios Triantafyllou [5381738]
+  Simon Pena Pereira     [5391210]
+  Pratyush Kumar         [5359252]
 */
 
 
@@ -57,6 +56,7 @@ int main(int argc, char** argv)
 	float epsilon = j["epsilon"];
 	std::string input_file = j["input_file"];
 	std::string output_file = j["output_file"];
+	int dist = j["distance"]; //new distnce parameter added
 
 	PlaneDetector detector;
 
@@ -67,10 +67,7 @@ int main(int argc, char** argv)
 
 	//-- perform plane detection and time how long it takes
   auto start = std::chrono::high_resolution_clock::now();
-
-	for (int i = 0; i < n_planes; ++i) {
-		detector.detect_plane(epsilon, min_score, k);
-	}
+  detector.detect_plane( epsilon, min_score, k, n_planes, dist); // call detect plane with the no of planes to be identified
 
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
