@@ -1,11 +1,10 @@
 /*
   GEO1015.2020
-  hw03 
+  hw03
   --
-  Pratyush Kumar
-  5359252
-  [YOUR NAME] 
-  [YOUR STUDENT NUMBER] 
+  Georgios Triantafyllou [5381738]
+  Simon Pena Pereira     [5391210]
+  Pratyush Kumar         [5359252]
 */
 
 
@@ -17,21 +16,15 @@
 //-- See https://github.com/sgorsten/linalg
 #include <linalg/linalg.h>
 using double3 = linalg::aliases::double3;
-
+using double2 = linalg::aliases::double2;
+using int3 = linalg::aliases::int3;
 /*
 The main class of this assignment. You are allowed to add functions and member variables for your own use.
 */
 class PlaneDetector {
-
-
   //-- you can add your own variables and functions here
 
-
-  /*
-  !!! DO NOT MODIFY below this line !!!
-  */
   public:
-
   /*
   We define a Point struct that inherits from the double3 struct that is defined in linalg.h. 
   This means you can use a Point as a double3, ie. with all the linear algebra functions defined for double3 in linalg.h.
@@ -39,44 +32,69 @@ class PlaneDetector {
 
   NOTICE that the segment_id==0 (the default value) means that the point is not assigned to any plane.
   */
+
   struct Point : double3 {
     using double3::double3;
     int segment_id{0};
   };
+  
 
   //-- The main plane detection function where you need to implement the RANSAC algorithm (in the PlaneDetector.cpp file)
-  void detect_plane(double epsilon, int min_score, int k);
+  void detect_plane(double epsilon, int min_score, int k, int n_planes, int dist);
 
   //-- .PLY reading (already implemented for you)
   bool read_ply(std::string filepath);
   //-- .PLY writing (you need to implement in PlaneDetector.cpp)
   void write_ply(std::string filepath);
   
+  //returns vector of indices wrt _input_points of poits around pt at distance 
+  std::vector<int> dist_return(double3 pt, double dist_around);
+
+  // returns 3 random indices from inp_pts whose segment id !=0
+  int3 randfunc(std::vector<Point> inp_pts);
+
+  // returns bounding box in 3d, could have been used for a cube based grid separated subsetting technique
+  std::vector<double2> get_min_max(std::vector<Point> pt);
+
+  // runs ransac for given points
+  void RANSACinator(std::vector<PlaneDetector::Point *> &ransac_points, double epsilon, int min_score, int k);
+  std::vector<double3> PlaneDetector::get_cubes(std::vector<double2> pt);
+
   //-- point cloud access (for the viewer application)
   const std::vector<Point>& get_input_points() {
     return _input_points;
   };
-  //std::vector<int> seg_id_used = { 1 }; //vector storing used segment id's, starts at 1
 
-  
-  /*std::vector<int> get_seg_id_used()
+  // returns vectors with segment id 0 for inp_pts
+  std::vector<int> get_segment_0_points(std::vector<Point> inp_pts)
   {
-      return seg_id_used;
-  }*/
-
+      // returns a vector containing indexes wrt inp_pts of points which have seg_id of 0
+      std::vector<int> vect = {};
+      for (int i=0; i< inp_pts.size(); i++)
+      {
+          if ( inp_pts[i].segment_id == 0)
+          {
+              vect.push_back(i);
+          }
+      }
+      return vect;
+  }
+  // gives a new plane number everytime its called
   int get_seg_id() // function/ method used to get a new ID and append the new value to the end of seg_id_used vector
   {
       ++current_plane_no;
       return   current_plane_no;
   }
 
-  private:
 
+  /////////////////////////// P.R.I.V.A.T.E ///////////////////////
+  private:
+      int current_plane_no = 0;
   //-- This variable holds the entire input point cloud after calling read_ply()
-  std::vector<Point> _input_points;
+      std::vector<Point> _input_points;
+      std::vector<Point> _pts_decreaser = _input_points ;
 
   //-- random number generator to generate your random numbers (important for RANSAC!)
   std::mt19937 _rand{ std::mt19937{std::random_device{}()} };
-  int current_plane_no = 0;
 
 };
